@@ -157,4 +157,5 @@ def status():
 if __name__ == '__main__':
     Path("uploads").mkdir(parents=True, exist_ok=True)
     Path("audio_temp").mkdir(parents=True, exist_ok=True)
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
