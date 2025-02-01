@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>FormulaDL - Buscador de Música</title>
+
+    <script>
+        function checkStatus() {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.procesando) {
+                        let resultadosDiv = document.getElementById('resultados');
+                        resultadosDiv.innerHTML = '<h2>Resultados de Coincidencias</h2>';
+                        let table = document.createElement('table');
+                        table.border = '1';
+                        let header = table.insertRow();
+                        header.insertCell(0).innerText = 'Título';
+                        header.insertCell(1).innerText = 'Enlace';
+                        data.coincidencias.forEach(coincidencia => {
+                            let row = table.insertRow();
+                            row.className = 'coincidencia';
+                            row.insertCell(0).innerHTML = `✔️ <strong>${coincidencia.Título}</strong>`;
+                            let linkCell = row.insertCell(1);
+                            let link = document.createElement('a');
+                            link.href = coincidencia.Enlace;
+                            link.target = '_blank';
+                            link.innerText = 'Ver en YouTube';
+                            linkCell.appendChild(link);
+                        });
+                        data.no_coincidencias.forEach(no_coincidencia => {
+                            let row = table.insertRow();
+                            row.className = 'no-coincidencia';
+                            row.insertCell(0).innerHTML = `❌ <strong>No se encontró coincidencia</strong>`;
+                            let linkCell = row.insertCell(1);
+                            let link = document.createElement('a');
+                            link.href = no_coincidencia.Enlace;
+                            link.target = '_blank';
+                            link.innerText = 'Ver en YouTube';
+                            linkCell.appendChild(link);
+                        });
+                        resultadosDiv.appendChild(table);
+                        document.getElementById('status').innerText = '';
+                    } else {
+                        setTimeout(checkStatus, 5000);
+                    }
+                });
+        }
+
+        function startProcessing() {
+            document.getElementById('status').innerText = '⏳ Procesando...';
+            setTimeout(checkStatus, 5000);
+        }
+
+        function submitForm(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            fetch('/', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json())
+                .then(data => {
+                    document.getElementById('status').innerText = data.status;
+                    checkStatus();
+                });
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px 0px #aaa;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .logo {
+            width: 150px;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            width: 50%;
+            transition: 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .coincidencia {
+            background-color: #d4edda;
+            color: #155724;
+            font-weight: bold;
+        }
+
+        .no-coincidencia {
+            background-color: #f8d7da;
+            color: #721c24;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <img class="logo" src="https://formuladl.com/wp-content/uploads/2024/06/LOGOTIPO-FORMULA-DIGITAL-2048x666.png" alt="FormulaDL Logo">
+        <h1>FormulaDL - Buscador de Música</h1>
+        <form method="post" enctype="multipart/form-data" onsubmit="submitForm(event)">
+            <div>
+                <label for="query">Término de búsqueda en YouTube:</label>
+                <input type="text" id="query" name="query" required>
+            </div>
+            <div>
+                <label for="max_resultados">Número de resultados (1-100):</label>
+                <input type="number" id="max_resultados" name="max_resultados" min="1" max="100" required>
+            </div>
+            <div>
+                <label for="file">Subir archivo MP3:</label>
+                <input type="file" id="file" name="file" accept=".mp3" required>
+            </div>
+            <button type="submit">Subir y Buscar</button>
+        </form>
+
+        <div id="status"></div>
+        <div id="resultados"></div>
+    </div>
+
+</body>
+</html>
